@@ -1,9 +1,9 @@
 pipeline {
     agent any
     stages {
-        stage('Build') { 
+        stage('Build') {
             steps {
-                sh 'npm install' 
+                sh 'npm install'
             }
         }
         stage('Test') {
@@ -11,24 +11,11 @@ pipeline {
                 sh './jenkins/scripts/test.sh'
             }
         }
-        stage('Deliver') {
-            parallel {
-                stage('Run Application Server') {
-                    steps {
-                        // Using local npx to host your 'build' output directory directly
-                        // This stays running actively in the foreground inside its own parallel branch
-                        sh 'npx serve -s build -l 3000'
-                    }
-                }
-                stage('User Verification') {
-                    steps {
-                        // Give the server 3 seconds to spin up completely
-                        sleep time: 3, unit: 'SECONDS'
-                        
-                        // Jenkins pauses here cleanly to let you test http://localhost:3000
-                        input message: 'Is the website running fine at http://localhost:3000? Click Proceed to finish.'
-                    }
-                }
+        stage('Deliver') { 
+            steps {
+                sh './jenkins/scripts/deliver.sh' 
+                input message: 'Finished using the web site? (Click "Proceed" to continue)' 
+                sh './jenkins/scripts/kill.sh' 
             }
         }
     }
